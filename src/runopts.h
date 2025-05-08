@@ -123,6 +123,7 @@ typedef struct svr_runopts {
 	char * pidfile;
 
 	char * authorized_keys_dir;
+	unsigned int * authorized_keys_dir_check_depth;
 
 	char * forced_command;
 	char* interface;

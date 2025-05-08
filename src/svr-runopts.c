@@ -63,6 +63,8 @@ static void printhelp(const char * progname) {
 #endif
 #if DROPBEAR_SVR_PUBKEY_AUTH
 					"-D		Directory containing authorized_keys file\n"
+					"-x	    Permissions and ownership check depth on\n"
+					"		directory containing authorized_keys file\n"	
 #endif
 #if DROPBEAR_DELAY_HOSTKEY
 					"-R		Create hostkeys as required\n" 
@@ -151,6 +153,7 @@ void svr_getopts(int argc, char ** argv) {
 	char* reexec_fd_arg = NULL;
 	char* keyfile = NULL;
 	char c;
+	char* authorized_keys_dir_check_depth_arg = NULL;
 #if DROPBEAR_PLUGIN
         char* pubkey_plugin = NULL;
 #endif
@@ -177,6 +180,7 @@ void svr_getopts(int argc, char ** argv) {
 	svr_opts.delay_hostkey = 0;
 	svr_opts.pidfile = expand_homedir_path(DROPBEAR_PIDFILE);
 	svr_opts.authorized_keys_dir = "~/.ssh";
+	svr_opts.authorized_keys_dir_check_depth = 0;
 #if DROPBEAR_SVR_LOCALANYFWD
 	svr_opts.nolocaltcp = 0;
 #endif
@@ -232,6 +236,9 @@ void svr_getopts(int argc, char ** argv) {
 #if DROPBEAR_SVR_PUBKEY_AUTH
 				case 'D':
 					next = &svr_opts.authorized_keys_dir;
+					break;
+				case 'x':
+					next = &authorized_keys_dir_check_depth_arg;
 					break;
 #endif
 				case 'R':
@@ -458,6 +465,14 @@ void svr_getopts(int argc, char ** argv) {
 
 	if (strlen(svr_opts.authorized_keys_dir) == 0) {
 		dropbear_exit("Bad -D");
+	}
+
+	if (authorized_keys_dir_check_depth_arg) {
+		unsigned int val;
+		if (m_str_to_uint(authorized_keys_dir_check_depth_arg, &val) == DROPBEAR_FAILURE) {
+			dropbear_exit("Bad -x '%s'", authorized_keys_dir_check_depth_arg);
+		}
+		svr_opts.authorized_keys_dir_check_depth = val;
 	}
 
 #if DROPBEAR_PLUGIN
